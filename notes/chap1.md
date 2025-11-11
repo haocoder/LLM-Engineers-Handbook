@@ -114,4 +114,108 @@ That will be the LLM Twin MVP. Even if it doesn’t sound like much, remember th
 ## 1.3 Building ML systems with feature/training/inference pipelines
 前面从用户和商业视角看待如何构建LLM Twin, 最后一步是从工程角度进行审视，并制定一个开发计划，以了解如何在技术层面上解决这一问题。从现在开始，将重点关注 LLM Twin 的实现。
 
+FTI pipelines(Feature/training/inference)是ML系统的核心
+
+### 1.3.1 The problem with building ML systems
+Types of problems an ML or MLOps enginner must consider:
+ - Ingest, clean, and validate fresh data
+ - Training versus inference setups
+ - Compute and serve features in the right environment
+ - Serve the model in a cost-effective way
+ - Version, track, and share the datasets and models
+ - Monitor your infrastructure and models
+ - Deploy the model on a scalable infrastructure
+ - Automate the deployments and training
+
+ML system common elements(from google cloud team):
+- ML code
+- configuration
+- automation
+- data collection
+- data verification
+- testing and debugging
+- resource management
+- model analysis
+- process management
+- metadata management
+- serving infrastructure
+- monitoring
+
+Question: 如何将这么多组件集成到单个系统中？
+
+类似解决方案就是分层架构： DB, 应用逻辑，UI
+
+### 1.3.2 Monolithic batch pipeline architecture
+![alt text](img/chap1/image-1.png)
+
+该架构中feature creation, model training, inference都在相同的组件中，训练数据和推理数据特征提取是一致的，解决了ML系统的training-serving skew问题；
+
+存在的问题：
+- 特征无法复用
+- 如果数据规模增加，得重构代码支持对大数据量的处理，比如要适配PySpark或Ray
+- 无法支持实时训练所需的流处理功能
+- 特征提取、模型训练、推理模块无法跨团队共享
+
+### 1.3.3 Stateless real-time architecture
+![alt text](img/chap1/image-2.png)
+
+该架构可以处理实时场景，但是存在的问题是要进行预测时，客户端必须把请求的整个状态都传到预测模块进行特征提取，然后进行预测，比如对于电影推荐，就要把用户id,性别，观影历史等等数据和请求一起发送到预测模块。
+
+而我们所需的解决方案是：客户端不需要知道预测模块进行特征提取的细节，也就不需要在请求中传输过多状态，比如电影推荐，只需要传输用户ID，其它特征信息由预测模块自己获取处理
+
+### 1.3.2 The solution - ML pipelines for ML systems
+![alt text](img/chap1/image.png)
+
+FTI pipeline pattern for ML system，即将ML系统分成三个pipelines: Feature, training, inference,
+可以很清晰的定义每个pipeline的范围、它们之间的接口、理清它们之间交互方式。每个pipeline都是不同的组件，可以运行在不同的环境中，即每个pipeline都是一个独立的微服务。
+
+#### feature pipeline
+- 接受原始数据进行处理得到特征和标签
+- 特征和标签数据保存到feature store， 进行version, trace, share管理
+- training pipeline和inference pipeline可以从feature store获取所需数据
+
+#### training pipeline
+- 从feature store获取特征、标签数据进行训练
+- 模型存储
+- 模型训练元数据存储（比如特征、标签的版本）
+
+#### inference pipeline
+- 获取特征、标签、模型
+- 同时支持batch和real-time模式
+- 支持基于模型元数据（特征版本、标签版本、模型版本）回退或者升级模型
+
+#### Benefits of the FTI architecture
+
+To conclude, the most important thing you must remember about the FTI pipelines is their in
+terface:
+- The feature pipeline takes in data and outputs the features and labels saved to the feature 
+store.
+- The training pipeline queries the features store for features and labels and outputs a 
+model to the model registry.
+- The inference pipeline uses the features from the feature store and the model from the 
+model registry to make predictions.
+
+It doesn’t matter how complex your ML system gets, these interfaces will remain the same.
+
+
+Now that we understand better how the pattern works, we want to highlight the main benefits 
+of using this pattern:
+- As you have just three components, it is intuitive to use and easy to understand.
+- Each component can be written into its tech stack, so we can quickly adapt them to specific needs, such as big or streaming data. Also, it allows us to pick the best tools for the job.
+- As there is a transparent interface between the three components, each one can be de
+veloped by a different team (if necessary), making the development more manageable 
+and scalable.
+- Every component can be deployed, scaled, and monitored independently.
+ 
+The final thing you must understand about the FTI pattern is that the system doesn’t have to 
+contain only three pipelines. In most cases, it will include more.
+
+The FTI pipelines act as logical layers. Thus, it is perfectly fine for each to be complex and contain multiple services.
+
+
+To learn more about the FTI pipeline pattern, consider reading From MLOps to ML 
+Systems with Feature/Training/Inference Pipelines by Jim Dowling, CEO and co-founder 
+of Hopsworks: https://www.hopsworks.ai/post/mlops-to-ml-systems-with
+fti-pipelines. His article inspired this section
+
 ## 1.4 Designing the system architecture of the LLM Twin
