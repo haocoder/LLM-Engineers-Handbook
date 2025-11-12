@@ -219,3 +219,69 @@ of Hopsworks: https://www.hopsworks.ai/post/mlops-to-ml-systems-with
 fti-pipelines. His article inspired this section
 
 ## 1.4 Designing the system architecture of the LLM Twin
+high-level architecture is language-, framework-, platform-, and infrastructure-agnostic,
+only focus on each component's scope, interface and interconnectivity.
+
+### 1.4.1 Technical details of the LLM Twin architecture
+- data side:
+   - Collect data from LinkedIn, Medium, Substack, and GitHub completely autonomously and on a schedule
+   - Standardize the crawled data and store it in a data warehouse
+   - Clean the raw data
+   - Create instruct datasets for fine-tuning an LLM
+   - Chunk and embed the cleaned data. Store the vectorized data into a vector DB for RAG
+
+- training:
+  - Fine-tune LLMs of various sizes (7B, 14B, 30B, or 70B parameters)
+  - Fine-tune on instruction datasets of multiple sizes
+  - Switch between LLM types (for example, between Mistral, Llama, and GPT)
+  - Track and compare experiments
+  - Test potential production LLM candidates before deploying them
+  - Automatically start the training when new instruction datasets are available
+
+- inference:
+  - A REST API interface for clients to interact with the LLM Twin
+  - Access to the vector DB in real time for RAG
+  - Inference with LLMs of various sizes
+  - Autoscaling based on user requests
+  - Automatically deploy the LLMs that pass the evaluation step.
+
+- system support LLMOps features:
+  - Instruction dataset versioning, lineage, and reusability
+  - Model versioning, lineage, and reusability
+  - Experiment tracking
+  - Continuous training, continuous integration, and continuous delivery (CT/CI/CD)
+  - Prompt and system monitoring
+
+#### 1.4.2 How to design the LLM Twin architecture using the FTI pipeline design
+四个核心组件：
+1. Data pipeline:
+   1. Crawling data from social media
+   2. ETL: extract, standardize, load into data warehouse
+2. Feature pipeline
+   1. 三种数据类型：take raw articles, posts and code from data warehouse in data pipeline
+   2. 三种处理步骤(为了fine-tuning和RAG): cleaning, chunking, and embedding
+   3. It creates two snapshots of the digital data, one after cleaning (used for fine-tuning) and one after embedding (used for RAG)
+   4. It uses a logical feature store instead of a specialized feature store
+   5. training pipeline and inference pipeline can access feature store
+
+3. Training pipeline
+   1. consume instruct datasets from the feature store
+   2. fine-tuning LLM
+   3. store the tuned LLM weights in a model registry
+   4. 微调过程的跟踪记录和新模型分布前的测试
+   5. continuous training when new instruct dataset are available
+   6. The particularities of this component will be on LLM aspects, such as the following:
+       - How do you implement an LLM agnostic pipeline?
+       - What fine-tuning techniques should you use?
+       - How do you scale the fine-tuning algorithm on LLMs and datasets of various sizes?
+       - How do you pick an LLM production candidate from multiple experiments?
+       - How do you test the LLM to decide whether to push it to production or not？
+ 
+4. Inference pipeline
+   1. load fine-tuned LLM from model registry
+   2. access knowledge for RAG from logical feature store
+   3. provide REST API for client
+   4. prompt and system monitoring for analyze, debug and better understand system
+   5. retrieval client/prompt templates/prompt monitor tools
+
+![alt text](img/chap1/image-3.png)
