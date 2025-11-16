@@ -36,7 +36,7 @@ class GithubCrawler(BaseCrawler):
 
             repo_path = os.path.join(local_temp, os.listdir(local_temp)[0])  # noqa: PTH118
 
-            tree = {}
+            tree = {} # dictionary to store the content of the repository.
             for root, _, files in os.walk(repo_path):
                 dir = root.replace(repo_path, "").lstrip("/")
                 if dir.startswith(self._ignore):
@@ -47,7 +47,7 @@ class GithubCrawler(BaseCrawler):
                         continue
                     file_path = os.path.join(dir, file)  # noqa: PTH118
                     with open(os.path.join(root, file), "r", errors="ignore") as f:  # noqa: PTH123, PTH118
-                        tree[file_path] = f.read().replace(" ", "")
+                        tree[file_path] = f.read().replace(" ", "") # why remove spaces?
 
             user = kwargs["user"]
             instance = self.model(

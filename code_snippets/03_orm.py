@@ -11,6 +11,7 @@ if __name__ == "__main__":
     Base = declarative_base()
 
     # Define  a class that maps to the users table.
+    # User ORM class
     class User(Base):
         __tablename__ = "users"
 

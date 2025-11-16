@@ -12,7 +12,7 @@ from .medium import MediumCrawler
 
 class CrawlerDispatcher:
     def __init__(self) -> None:
-        self._crawlers = {}
+        self._crawlers = {} # registry to store the registered crawlers.
 
     @classmethod
     def build(cls) -> "CrawlerDispatcher":

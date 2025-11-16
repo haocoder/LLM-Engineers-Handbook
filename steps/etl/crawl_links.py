@@ -11,6 +11,7 @@ from llm_engineering.domain.documents import UserDocument
 
 @step
 def crawl_links(user: UserDocument, links: list[str]) -> Annotated[list[str], "crawled_links"]:
+    # A crawler dispatcher is initialized and configured to handle specific domains such as LinkedIn, Medium, and GitHub
     dispatcher = CrawlerDispatcher.build().register_linkedin().register_medium().register_github()
 
     logger.info(f"Starting to crawl {len(links)} link(s).")

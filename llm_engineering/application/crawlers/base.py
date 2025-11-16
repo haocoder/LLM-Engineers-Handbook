@@ -15,7 +15,7 @@ chromedriver_autoinstaller.install()
 
 
 class BaseCrawler(ABC):
-    model: type[NoSQLBaseDocument]
+    model: type[NoSQLBaseDocument]  # model是类对象本身，而不是实例对象， model: NoSQLBaseDocument 表示model是NoSQLBaseDocument的子类
 
     @abstractmethod
     def extract(self, link: str, **kwargs) -> None: ...

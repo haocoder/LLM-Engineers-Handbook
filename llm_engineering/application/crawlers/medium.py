@@ -21,23 +21,23 @@ class MediumCrawler(BaseSeleniumCrawler):
 
         logger.info(f"Starting scrapping Medium article: {link}")
 
-        self.driver.get(link)
-        self.scroll_page()
+        self.driver.get(link) # navigate to the article page
+        self.scroll_page() # scroll through the article to load all the content
 
-        soup = BeautifulSoup(self.driver.page_source, "html.parser")
-        title = soup.find_all("h1", class_="pw-post-title")
-        subtitle = soup.find_all("h2", class_="pw-subtitle-paragraph")
+        soup = BeautifulSoup(self.driver.page_source, "html.parser") # parse the HTML content of the article
+        title = soup.find_all("h1", class_="pw-post-title") # find the title of the article
+        subtitle = soup.find_all("h2", class_="pw-subtitle-paragraph") # find the subtitle of the article
 
         data = {
-            "Title": title[0].string if title else None,
-            "Subtitle": subtitle[0].string if subtitle else None,
-            "Content": soup.get_text(),
+            "Title": title[0].string if title else None, # get the text of the title
+            "Subtitle": subtitle[0].string if subtitle else None, # get the text of the subtitle
+            "Content": soup.get_text(), # get the text of the content of the article
         }
 
-        self.driver.close()
+        self.driver.close() # close the browser
 
         user = kwargs["user"]
-        instance = self.model(
+        instance = self.model( # create a new instance of the article document model and save it to the database
             platform="medium",
             content=data,
             link=link,

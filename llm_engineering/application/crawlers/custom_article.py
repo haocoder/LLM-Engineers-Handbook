@@ -25,10 +25,10 @@ class CustomArticleCrawler(BaseCrawler):
         logger.info(f"Starting scrapping article: {link}")
 
         loader = AsyncHtmlLoader([link])
-        docs = loader.load()
+        docs = loader.load()  # load the HTML content of the article
 
         html2text = Html2TextTransformer()
-        docs_transformed = html2text.transform_documents(docs)
+        docs_transformed = html2text.transform_documents(docs) # transform the HTML content into text
         doc_transformed = docs_transformed[0]
 
         content = {
@@ -42,6 +42,7 @@ class CustomArticleCrawler(BaseCrawler):
         platform = parsed_url.netloc
 
         user = kwargs["user"]
+        # create a new instance of the article document model and save it to the database
         instance = self.model(
             content=content,
             link=link,
